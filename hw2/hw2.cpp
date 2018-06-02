@@ -1,12 +1,12 @@
 #include <ctime>
 #include <iostream>
+#include <list>
 #include <vector>
+#include <set>
 #include <limits>
 #include <limits.h>
 
-using std::cout, std::endl;
-using std::vector;
-using std::rand, std::srand, std::time;
+using namespace std;
 
 /******************************
  * Graph class that uses an adjacency 
@@ -15,141 +15,126 @@ using std::rand, std::srand, std::time;
 class Graph {
 
     private:
-        float **adj_matrix;
         int vertices;
         int edges;
-        int size;
-
-		float min_dist(float *distances, bool s_set[])
-		{
-			float min = std::numeric_limits<float>::max(), min_index;
-			for (int i = 0; i < this->size; i++) {
-				if (distances[i] <= min && s_set[i] == false)
-					min = distances[i], min_index = i;
-			}
-
-			return min_index;
-		}
+        bool to_rm(const pair<int, float>&p, int rm) { return p.first == rm; }
 
     public:
+        list<pair<int, float>> *adj_list;
         // Class constructor
-        Graph(int size)
-        {
-            this->size = size;
-            adj_matrix = new float *[size];
-            for (int i = 0; i < size; i++) {
-                  adj_matrix[i] = new float[size];
-                  for (int j = 0; j < size; j++)
-                        adj_matrix[i][j] = 0;
-            }
-
+        Graph(int size) {
             vertices = size;
+            adj_list = new list<pair<int, float>>[size];
+
             edges = 0;
         }
 
-        // Dijkstras algorithm
-        int path(int x, int y)
+        int v() const
         {
-            // https://www.geeksforgeeks.org/greedy-algorithms-set-6-dijkstras-shortest-path-algorithm/
-
-            float *distances = new float[this->size];
-            bool *s_set = new bool[this->size];
-
-            for (int i = 0; i < this->size; i++) {
-                distances[i] = std::numeric_limits<float>::max();
-                s_set[i] = false;
-            }
-
-            distances[x] = 0;
-
-     		for (int i = 0; i < this->size - 1; i++) {
-				int u = this->min_dist(distances, s_set);
-				s_set[u] = true;
-				for (int v = 0; v < this->size; v++) {
-				 if (!s_set[v] && adjacent(u, v) && distances[u] != INT_MAX && distances[u]+this->adj_matrix[u][v] < distances[v])
-				    distances[v] = distances[u] + this->adj_matrix[u][v];
-                }
-		 	}
-
-            distances[x] = 0;
-            return distances[y];
-        }
-
-        int v()
-        {
-            return this->vertices;
+            return vertices;
         }
 
         int e()
         {
-            return this->edges;
+            return edges;
         }
 
-        void add_edge(int x, int y)
+        void add_edge(int x, int y, float distance)
         {
-            if (x < this->size && y < this->size) {
-                this->adj_matrix[x][y] = 1;
-                this->adj_matrix[y][x] = 1;
-                this->edges++;
-            }
+            adj_list[x].push_back(make_pair(y, distance));
+            adj_list[y].push_back(make_pair(x, distance));
+            edges++;
             return;
         }
 
         void delete_edge(int x, int y)
         {
-            if (x < this->size && y < this->size) {
-                this->adj_matrix[x][y] = 0;
-                this->adj_matrix[y][x] = 0;
-                this->edges--;
-            }
+            // TODO
             return;
         }
 
-        bool adjacent(int n1, int n2)
+        bool adjacent(int x, int y)
         {
-            if (n1 < this->size && n2 < this->size)
-                return this->adj_matrix[n1][n2] != 0;
-            else
-                return false;
+            list<pair<int, float>>::iterator it;
+            for (it = adj_list[x].begin(); it != adj_list[x].end(); ++it) {
+                if (it->first == y)
+                    return true;
+            }
+
+            return false;
         }
 
         void neighbors(int x)
         {
-            int res = 0;
-
-            if (x < this->size) {
-                for (int i = 0; i < this->size; i++) {
-                    if (this->adj_matrix[x][i] != 0) {
-                        cout << " " << i;
-                        res++;
-                    }
-                }
-                cout << endl;
-            }
-        }
-
-        void display()
-        {
-            for (int i = 0; i < this->size; i++) {
-                for (int j = 0; j < this->size; j++) {
-                    cout << " " << this->adj_matrix[i][j];
-                }
-                cout << endl;
-            }
+            return;
         }
 
         int get_edge_value(int x, int y)
         {
-            if (x < this->size && y < this->size) {
-                return this->adj_matrix[x][y];
+            list<pair<int, float>>::iterator it;
+            for (it = adj_list[x].begin(); it != adj_list[x].end(); ++it) {
+                if (it->first == y)
+                    return it->second;
             }
         }
 
         void set_edge_value(int x, int y, float val)
         {
-            if (x < this->size && y < this->size) {
-                this->adj_matrix[x][y] = val;
+            return;
+        }
+
+        void disp()
+        {
+            for (int i = 0; i < edges; i++) {
+                cout << "edge: " << i;
+                list<pair<int, float>>::iterator it;
+                for (it = adj_list[i].begin(); it != adj_list[i].end(); ++it) {
+                    cout << " neighbor: " << it->first << " dist: " << it->second << endl;
+                }
             }
+        }
+};
+
+class ShortestPath {
+    private:
+        const Graph &graph;
+        vector<int> actual_path;
+        int distance;
+    public:
+        ShortestPath(const Graph &g): graph(g) {}
+        
+        int path(int src, int dst)
+        {
+            // geeksforgeeks + wikipedia
+            vector<int> path;
+            set<pair<float, int>> pre_set;
+            pre_set.insert(make_pair(0, src));
+            vector<float> ret(graph.v(), numeric_limits<float>::infinity());
+            ret[src] = 0;
+
+            while (!pre_set.empty()) {
+                pair<int, float> tmp = *(pre_set.begin());
+                pre_set.erase(pre_set.begin());
+
+                int x = tmp.second;
+                list<pair<int, float>>::iterator it;
+                for (it = graph.adj_list[x].begin(); it != graph.adj_list[x].end(); ++it) {
+                    int y = (*it).first;
+                    float weight = (*it).second;
+
+                    if (ret[y] > ret[x] + weight) {
+                        if (ret[y] != numeric_limits<float>::infinity())
+                            pre_set.erase(pre_set.find(make_pair(ret[y], y)));
+
+						path.push_back(x);
+                        ret[y] = ret[x] + weight;
+                        pre_set.insert(make_pair(ret[y], y));
+                    }
+                }
+
+            }
+
+            return ret[dst];
         }
 };
 
@@ -162,25 +147,27 @@ void run_simulation(const float DENSITY, const float DIST_RANGE[2])
     for (int i = 0; i < NODES; i++) {
 
         for (int j = 0; j < NODES; j++) {
-            float r = static_cast<float>(rand() / static_cast<float>(RAND_MAX));
             float d = static_cast<float>(rand() / static_cast<float>(RAND_MAX/10.0));
+            float r = static_cast<float>(rand() / static_cast<float>(RAND_MAX));
             if (r < DENSITY) {
-                graph.add_edge(i, j);
-                graph.set_edge_value(i, j, d);
+                graph.add_edge(i, j, d);
             }
         }
 
     }
 
-    int tot = 0, num = 0;
+
+    ShortestPath p(graph);
+
+    float tot = 0, num = 0;
     for (int i = 0; i < NODES; i++) {
-        int dist = graph.path(0, i);
+        int dist = p.path(0, i);
         if (dist > 0) {
             tot += dist;
             num++;
         }
     }
-    cout << "Average distance: "<< tot / num << endl;
+    cout << "Average distance for density " << DENSITY << ": " << tot / num << endl;
 
     return;
 }
@@ -191,10 +178,9 @@ int main(void)
     // Seed the programs rand() calls
     srand(time(nullptr));
 
-    // Run the simulations
-    const float DIST_RANGE[2]   = {1.0, 10.0};
-    run_simulation(0.2, DIST_RANGE);
-    run_simulation(0.4, DIST_RANGE);
+    const float r[] = {1.0, 10.0};
+    run_simulation(0.2, r);
+    run_simulation(0.4, r);
 
     return 0;
 }
