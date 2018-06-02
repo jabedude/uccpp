@@ -5,10 +5,10 @@ the 'new' keyword for heap allocations in C++. The new syntax was
 unfamiliar but easy to pick up. I also learned about C++ constructors and 
 destructors. OOP makes it simpler to program and think about concepts that
 tie data and methods together. It was nice to use when creating a graph 
-data structure. I chose to use an adjacency matrix for this graph 
-implementation because it is simpler to visiualize that a list. For large 
-amounts of nodes, my implementation could be problematic from a memory 
-usage standpoint. The wikipedia page and geeksforgeeks references for 
+data structure. I chose to use an adjacency list for this graph 
+implementation because it is much more memory efficient. For large 
+amounts of nodes, my implementation uses far less memory than a matrix of
+equivalent nodes. The wikipedia page and geeksforgeeks references for 
 Dijkstra's algorithm were great aids in implementing it. After this project 
 I feel more confortable using C++'s OOP features. This was my first time 
 writing a Monte Carlo simulation but it was straightforward to do so. I 
