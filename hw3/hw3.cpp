@@ -125,8 +125,8 @@ class MinSpanningTree {
         // Prims's algorithm
         void gen_tree()
         {
-            // list<pair<int, float>> *adj_list;
             // https://gigi.nullneuron.net/gigilabs/how-to-use-the-c-stl-priority-queue/
+            // https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-using-stl-in-c/
             float tot_cost = 0;
             priority_queue< pair<int, float>, vector<pair<int, float>>, greater<pair<int, float>> > pq;
             int src = 0;
@@ -152,26 +152,25 @@ class MinSpanningTree {
                 }
             }
 
-			cout << "************ EDGES ************" << endl;
+            cout << "************ EDGES ************" << endl;
             for (int i = 1; i < graph.v(); i++) {
 				cout << origins[i] << " -> " << i << endl;
 				tot_cost += graph.get_edge_value(origins[i], i);
-			}
-
-			cout << "MST COST: " << tot_cost << endl;
+            }
+            cout << "MST COST: " << tot_cost << endl;
             return;
         }
 };
 
 int main(int argc, char **argv)
 {
-	// Command line arguments check
-	if (argc != 2) {
-		cout << "Useage: " << argv[0] << " <data file>" << endl;
-		exit(-1);
-	}
+    // Command line arguments check
+    if (argc != 2) {
+        cout << "Useage: " << argv[0] << " <data file>" << endl;
+        exit(-1);
+    }
 
-	// Open the specified data file and generate a graph
+    // Open the specified data file and generate a graph
     Graph g(argv[1]);
     MinSpanningTree m(g);
     m.gen_tree();
